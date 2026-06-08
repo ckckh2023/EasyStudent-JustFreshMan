@@ -8,23 +8,30 @@
 #include <fstream>
 #include <limits>
 #include <algorithm>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 void ClearConsole() {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    DWORD written, consoleSize;
+    #ifdef _WIN32
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        DWORD written, consoleSize;
     
-    //获取控制台缓冲区信息
-    GetConsoleScreenBufferInfo(hConsole, &csbi);
-    consoleSize = csbi.dwSize.X * csbi.dwSize.Y;
+        //获取控制台缓冲区信息
+        GetConsoleScreenBufferInfo(hConsole, &csbi);
+        consoleSize = csbi.dwSize.X * csbi.dwSize.Y;
 
-    //用空格填充整个缓冲区
-    FillConsoleOutputCharacter(hConsole, ' ', consoleSize, {0, 0}, &written);
-    FillConsoleOutputAttribute(hConsole, csbi.wAttributes, consoleSize, {0, 0}, &written);
+        //用空格填充整个缓冲区
+        FillConsoleOutputCharacter(hConsole, ' ', consoleSize, {0, 0}, &written);
+        FillConsoleOutputAttribute(hConsole, csbi.wAttributes, consoleSize, {0, 0}, &written);
 
-    //将光标移动到左上角
-    SetConsoleCursorPosition(hConsole, {0, 0});
+        //将光标移动到左上角
+        SetConsoleCursorPosition(hConsole, {0, 0});
+    #else
+        std::cout << "\033[2J\033[1;1H";  // ANSI转义序列
+    #endif
 }
 
 class StudentMain {
@@ -363,7 +370,7 @@ void ImportFile() {
     std::string FileName;
     std::getline(std::cin, FileName);
     FileName += ".txt";
-    std::ifstream files(FileName, std::ios::out);
+    std::ifstream files(FileName, std::ios::in);
     if (!files.is_open()) std::cout << "无法保存为文件！\n";
     else {
         std::string Names, idNums;
@@ -486,7 +493,9 @@ void QuitCmd() { exit(0); }
 
 int main() {
     std::ios::sync_with_stdio(false);
-    system("chcp 65001>nul");
+    #ifdef _WIN32 
+        system("chcp 65001>nul"); 
+    #endif
     std::cout << "---------欢迎来到简易版学生信息系统---------\n";
     std::cout << "tips: 输入help查看可用指令\n";
     std::unordered_map<std::string, std::function<void()>> CommandMap;
